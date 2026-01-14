@@ -93,8 +93,7 @@
     .card h2{font-size:18px;margin-bottom:4px;font-weight:800}
     .card p{color:var(--muted);font-size:13px;margin-bottom:14px}
 
-    /* ===== Stage (normal mode uses grid) ===== */
-    .meeting-stage{display:none}
+    /* Normal layout */
     .video-grid{display:grid;grid-template-columns: repeat(2, minmax(0, 1fr));gap:12px}
     .video-box{
       border-radius:18px;
@@ -107,7 +106,7 @@
     body.light .video-box{background:rgba(122,168,63,.06)}
     .video-label{font-size:12px;color:var(--muted)}
     video{width:100%;border-radius:14px;background:#000;min-height:180px}
-    #localVideo.mirrored{transform:scaleX(-1)}
+    #localVideo.mirrored, #localVideoStage.mirrored{transform:scaleX(-1)}
 
     .remote-grid{display:grid;grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));gap:8px}
     .remote-video-wrapper{position:relative}
@@ -123,6 +122,7 @@
       border:none;border-radius:999px;padding:4px 10px;
       font-size:12px;cursor:pointer;background:rgba(0,0,0,.52);color:#fff;
     }
+
     .statusbar{
       margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
       font-size:12px;color:var(--muted);
@@ -195,12 +195,6 @@
     }
     #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1500}
 
-    /* guest hides control UI */
-    body.meeting-only .topbar,
-    body.meeting-only .sidebar,
-    body.meeting-only #btnToggleSidebar,
-    body.meeting-only #overlay{display:none !important}
-
     @media (max-width: 980px){
       .layout{grid-template-columns:1fr}
       .sidebar{
@@ -217,6 +211,11 @@
     /* ===========================
        Messenger-like Guest Mode
        =========================== */
+    body.meeting-only .topbar,
+    body.meeting-only .sidebar,
+    body.meeting-only #btnToggleSidebar,
+    body.meeting-only #overlay{display:none !important}
+
     body.meeting-only{
       background:#0b120b;
       overflow:hidden;
@@ -247,36 +246,37 @@
       overflow:hidden;
     }
 
-    /* اخفي العناوين الكبيرة في guest */
     body.meeting-only #pageTitle,
     body.meeting-only #sideTitle,
     body.meeting-only #pageSub{display:none !important;}
 
-    /* في guest استخدم stage بدل grid */
-    body.meeting-only .video-grid{display:none !important;}
+    /* اخفي normal grid في guest */
+    body.meeting-only .video-grid,
     body.meeting-only .statusbar{display:none !important;}
-    body.meeting-only .meeting-stage{
-      display:block;
+
+    /* Stage */
+    .meeting-stage{
+      display:none;
       position:relative;
       flex:1;
       min-height:0;
       background:#000;
       overflow:hidden;
     }
+    body.meeting-only .meeting-stage{display:block;}
 
     .remote-stage{position:absolute; inset:0;}
 
-    body.meeting-only #remoteVideosGrid{
+    /* Stage remote container */
+    body.meeting-only #remoteVideosGridStage{
       position:absolute; inset:0;
       display:block;
     }
-
-    body.meeting-only #remoteVideosGrid .remote-video-wrapper{
+    body.meeting-only #remoteVideosGridStage .remote-video-wrapper{
       position:absolute !important;
       inset:0 !important;
     }
-
-    body.meeting-only #remoteVideosGrid video{
+    body.meeting-only #remoteVideosGridStage video{
       width:100% !important;
       height:100% !important;
       border-radius:0 !important;
@@ -284,16 +284,13 @@
       background:#000;
       min-height:0 !important;
     }
-
-    body.meeting-only #remoteVideosGrid:empty::before{
+    body.meeting-only #remoteVideosGridStage:empty::before{
       content:"بانتظار الطرف الآخر...";
       position:absolute; inset:0;
       display:flex; align-items:center; justify-content:center;
       color:rgba(255,255,255,.75);
       font-size:14px;
     }
-
-    /* اخفي label في guest */
     body.meeting-only .remote-peer-label{display:none !important;}
 
     .stage-topbar{
@@ -314,7 +311,7 @@
 
     .local-pip{
       position:absolute;
-      bottom:92px; /* فوق الشات */
+      bottom:92px;
       right:12px;
       width:min(34vw, 170px);
       aspect-ratio: 3/4;
@@ -362,7 +359,7 @@
       -webkit-overflow-scrolling:touch;
       padding:2px 0;
     }
-    body.meeting-only .chat-input{font-size:16px;} /* يمنع iOS zoom */
+    body.meeting-only .chat-input{font-size:16px;}
   </style>
 </head>
 
@@ -387,7 +384,7 @@
       <h3 id="sideTitle">الصفحة نورت بوجودك يا حلومه 😅</h3>
       <p id="pageSub"></p>
 
-      <!-- Normal desktop/tablet layout -->
+      <!-- Normal layout -->
       <div class="video-grid">
         <div class="video-box">
           <div class="video-label" id="lblLocal">الحلو 😒</div>
@@ -403,26 +400,26 @@
         </div>
       </div>
 
-      <!-- Guest/mobile stage layout -->
+      <!-- Guest stage (IDs مختلفة) -->
       <div class="meeting-stage" id="meetingStage">
         <div class="remote-stage">
-          <div id="remoteVideosGrid" class="remote-grid"></div>
+          <div id="remoteVideosGridStage" class="remote-grid"></div>
           <div class="stage-topbar">
-            <span id="callStatus" class="ok">جاهز</span>
+            <span id="callStatusStage" class="ok">جاهز</span>
             <span class="sep">•</span>
-            <span id="callTimer" class="mono">00:00</span>
+            <span id="callTimerStage" class="mono">00:00</span>
             <span class="sep">•</span>
-            <span id="participantsCount" class="mono">1</span>
+            <span id="participantsCountStage" class="mono">1</span>
           </div>
         </div>
 
         <div class="local-pip">
-          <video id="localVideo" class="mirrored" autoplay muted playsinline></video>
-          <button class="pip-fs" type="button" id="btnFsLocal">⛶</button>
+          <video id="localVideoStage" class="mirrored" autoplay muted playsinline></video>
+          <button class="pip-fs" type="button" id="btnFsLocalStage">⛶</button>
         </div>
       </div>
 
-      <!-- Desktop statusbar (hidden in guest) -->
+      <!-- Desktop statusbar -->
       <div class="statusbar">
         <span>حالة الاتصال:</span>
         <span id="callStatus" class="ok">جاهز</span>
@@ -583,16 +580,35 @@
     setLang(getLang());
 
     // =============================
-    // Fullscreen (bind once)
+    // Detect guest UI + element getters (no duplicate IDs now)
     // =============================
-    (function bindFullscreen(){
-      const btn = document.getElementById("btnFsLocal");
-      btn.addEventListener("click", ()=>{
-        const v = document.getElementById("localVideo");
-        if (!document.fullscreenElement) v.requestFullscreen?.().catch(()=>{});
-        else document.exitFullscreen?.().catch(()=>{});
-      });
-    })();
+    const isGuestUI = document.body.classList.contains("meeting-only");
+
+    function getRemoteGridEl(){
+      return document.getElementById(isGuestUI ? "remoteVideosGridStage" : "remoteVideosGrid");
+    }
+    function getLocalVideoEl(){
+      return document.getElementById(isGuestUI ? "localVideoStage" : "localVideo");
+    }
+    function getFsBtnEl(){
+      return document.getElementById(isGuestUI ? "btnFsLocalStage" : "btnFsLocal");
+    }
+    function getCallStatusEl(){
+      return document.getElementById(isGuestUI ? "callStatusStage" : "callStatus");
+    }
+    function getCallTimerEl(){
+      return document.getElementById(isGuestUI ? "callTimerStage" : "callTimer");
+    }
+    function getParticipantsEl(){
+      return document.getElementById(isGuestUI ? "participantsCountStage" : "participantsCount");
+    }
+
+    // Fullscreen bind
+    getFsBtnEl().addEventListener("click", ()=>{
+      const v = getLocalVideoEl();
+      if (!document.fullscreenElement) v.requestFullscreen?.().catch(()=>{});
+      else document.exitFullscreen?.().catch(()=>{});
+    });
 
     // =============================
     // Peer + Media
@@ -600,10 +616,6 @@
     const myIdBox = document.getElementById("myIdBox");
     const inviteLinkInput = document.getElementById("inviteLinkInput");
     const remoteIdInput = document.getElementById("remoteIdInput");
-    const remoteVideosGrid = document.getElementById("remoteVideosGrid");
-    const callStatus = document.getElementById("callStatus");
-    const callTimerEl = document.getElementById("callTimer");
-    const participantsCountEl = document.getElementById("participantsCount");
 
     const btnStartCall = document.getElementById("btnStartCall");
     const btnEndCall = document.getElementById("btnEndCall");
@@ -639,8 +651,9 @@
     function buildMyId(){ return "SUS-" + randomIdPart(6) + "-" + randomIdPart(4); }
 
     function setStatus(text, isError){
-      callStatus.textContent = text;
-      callStatus.style.color = isError ? "#fecaca" : "var(--accent-2)";
+      const el = getCallStatusEl();
+      el.textContent = text;
+      el.style.color = isError ? "#fecaca" : "var(--accent-2)";
     }
 
     function formatTime(totalSeconds){
@@ -648,17 +661,22 @@
       const s = totalSeconds%60;
       return (m<10?("0"+m):(""+m)) + ":" + (s<10?("0"+s):(""+s));
     }
+
     function startCallTimer(){
       if (callInProgress) return;
       callInProgress = true;
       callSecondsElapsed = 0;
       if (callTimerInterval) clearInterval(callTimerInterval);
-      callTimerEl.textContent = "00:00";
+
+      const t = getCallTimerEl();
+      t.textContent = "00:00";
+
       callTimerInterval = setInterval(()=>{
         callSecondsElapsed++;
-        callTimerEl.textContent = formatTime(callSecondsElapsed);
+        getCallTimerEl().textContent = formatTime(callSecondsElapsed);
       }, 1000);
     }
+
     function stopCallTimer(reset=true){
       callInProgress = false;
       if (callTimerInterval){
@@ -667,11 +685,12 @@
       }
       if (reset){
         callSecondsElapsed = 0;
-        callTimerEl.textContent = "00:00";
+        getCallTimerEl().textContent = "00:00";
       }
     }
+
     function updateParticipantsCount(){
-      participantsCountEl.textContent = 1 + Object.keys(activeCalls).length;
+      getParticipantsEl().textContent = 1 + Object.keys(activeCalls).length;
     }
 
     function updateCameraButtonUI(){
@@ -684,13 +703,15 @@
     }
 
     async function getMediaStream(){
-      const localVideoEl = document.getElementById("localVideo");
+      const localVideoEl = getLocalVideoEl();
+
       if (cameraStream){
         localStream = cameraStream;
         localVideoEl.srcObject = localStream;
         localVideoEl.classList.add("mirrored");
         return localStream;
       }
+
       const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
       cameraStream = stream;
       localStream = stream;
@@ -709,7 +730,7 @@
     }
 
     function switchVideoTrack(newStream){
-      const localVideoEl = document.getElementById("localVideo");
+      const localVideoEl = getLocalVideoEl();
       if (!newStream) return;
       localStream = newStream;
       localVideoEl.srcObject = newStream;
@@ -730,7 +751,7 @@
           isScreenSharing = true;
           btnShareScreen.classList.add("off");
           btnShareScreen.textContent = "🛑";
-          document.getElementById("localVideo").classList.remove("mirrored");
+          getLocalVideoEl().classList.remove("mirrored");
 
           const track = screenStream.getVideoTracks()[0];
           track.addEventListener("ended", stopScreenShare);
@@ -738,6 +759,7 @@
         })
         .catch(()=>{});
     }
+
     function stopScreenShare(){
       if (!isScreenSharing) return;
       isScreenSharing = false;
@@ -749,20 +771,18 @@
       }
       if (cameraStream){
         switchVideoTrack(cameraStream);
-        document.getElementById("localVideo").classList.add("mirrored");
+        getLocalVideoEl().classList.add("mirrored");
       }
     }
 
-    // ✅ مهم: في guest خليه remote واحد fullscreen
     function addRemoteVideo(peerId, remoteStream){
       remoteStreams[peerId] = remoteStream;
+      const grid = getRemoteGridEl();
 
-      // لو أنت في guest: امسح أي فيديوهات قديمة وخلي واحد
-      if (document.body.classList.contains("meeting-only")){
-        remoteVideosGrid.innerHTML = "";
-      }
+      // في guest: خلي واحد fullscreen
+      if (isGuestUI) grid.innerHTML = "";
 
-      let wrapper = document.querySelector(`.remote-video-wrapper[data-peer-id="${peerId}"]`);
+      let wrapper = grid.querySelector(`.remote-video-wrapper[data-peer-id="${peerId}"]`);
       if (!wrapper){
         wrapper = document.createElement("div");
         wrapper.className = "remote-video-wrapper";
@@ -778,7 +798,7 @@
 
         wrapper.appendChild(v);
         wrapper.appendChild(label);
-        remoteVideosGrid.appendChild(wrapper);
+        grid.appendChild(wrapper);
       }else{
         const v = wrapper.querySelector("video");
         if (v) v.srcObject = remoteStream;
@@ -787,7 +807,8 @@
 
     function removeRemoteVideo(peerId){
       delete remoteStreams[peerId];
-      const wrapper = document.querySelector(`.remote-video-wrapper[data-peer-id="${peerId}"]`);
+      const grid = getRemoteGridEl();
+      const wrapper = grid.querySelector(`.remote-video-wrapper[data-peer-id="${peerId}"]`);
       wrapper?.remove();
     }
 
@@ -866,7 +887,9 @@
       });
     }
 
+    // =============================
     // Buttons
+    // =============================
     btnToggleCamera.addEventListener("click", ()=>{
       if (isScreenSharing) { alert("أوقف مشاركة الشاشة أولاً"); return; }
       const s = cameraStream || localStream;
@@ -908,11 +931,11 @@
       Object.values(activeCalls).forEach(c=>{ try{ c.close(); }catch{} });
       for (const k in activeCalls) delete activeCalls[k];
 
-      remoteVideosGrid.innerHTML = "";
+      getRemoteGridEl().innerHTML = "";
 
       if (cameraStream){ cameraStream.getTracks().forEach(t=> t.stop()); cameraStream = null; }
       localStream = null;
-      document.getElementById("localVideo").srcObject = null;
+      getLocalVideoEl().srcObject = null;
 
       stopCallTimer(true);
       updateParticipantsCount();
@@ -926,7 +949,9 @@
       catch { inviteLinkInput.select(); document.execCommand("copy"); alert("تم النسخ"); }
     });
 
+    // =============================
     // Chat (local UI only)
+    // =============================
     const chatMessagesEl = document.getElementById("chatMessages");
     const chatForm = document.getElementById("chatForm");
     const chatInput = document.getElementById("chatInput");
@@ -983,6 +1008,9 @@
       }
     }
 
+    // =============================
+    // Init
+    // =============================
     initPeer();
     window.addEventListener("load", ()=>{
       getMediaStream().catch(()=> setStatus("اسمح بالكاميرا/المايك من المتصفح", true));
