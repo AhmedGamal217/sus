@@ -23,7 +23,6 @@
       --card:#ffffff; --card2:#ffffff; --input:#ffffff; --chip:rgba(122,168,63,.10);
     }
     *{margin:0;padding:0;box-sizing:border-box}
-
     html,body{height:100%}
 
     body{
@@ -56,7 +55,6 @@
     }
     .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.4px}
     .brand .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px rgba(122,168,63,.18)}
-    .brand .title{font-size:18px;text-transform:uppercase}
     .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
     .pill{
       border:1px solid var(--border);
@@ -95,6 +93,8 @@
     .card h2{font-size:18px;margin-bottom:4px;font-weight:800}
     .card p{color:var(--muted);font-size:13px;margin-bottom:14px}
 
+    /* ===== Stage (normal mode uses grid) ===== */
+    .meeting-stage{display:none}
     .video-grid{display:grid;grid-template-columns: repeat(2, minmax(0, 1fr));gap:12px}
     .video-box{
       border-radius:18px;
@@ -195,6 +195,7 @@
     }
     #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1500}
 
+    /* guest hides control UI */
     body.meeting-only .topbar,
     body.meeting-only .sidebar,
     body.meeting-only #btnToggleSidebar,
@@ -214,13 +215,13 @@
     .footer{width:min(1180px, 100%);margin:10px auto 22px;padding:0 14px;color:var(--muted);font-size:12px;text-align:center}
 
     /* ===========================
-       Messenger-like guest mode (NO page scroll)
+       Messenger-like Guest Mode
        =========================== */
     body.meeting-only{
+      background:#0b120b;
       overflow:hidden;
       overscroll-behavior:none;
       touch-action:manipulation;
-      -webkit-overflow-scrolling: touch;
     }
 
     body.meeting-only .layout{
@@ -231,55 +232,137 @@
       margin:0;
       grid-template-columns:1fr !important;
       height:100dvh;
-      height:calc(var(--vh, 1vh) * 100); /* fallback for old browsers */
+      height:calc(var(--vh, 1vh) * 100);
       overflow:hidden;
     }
 
     body.meeting-only .card{
       height:100%;
-      min-height:0;
+      padding:0;
       border-radius:0;
       border:none;
       box-shadow:none;
-      padding:12px;
       display:flex;
       flex-direction:column;
       overflow:hidden;
     }
 
-    body.meeting-only .video-grid{
+    /* اخفي العناوين الكبيرة في guest */
+    body.meeting-only #pageTitle,
+    body.meeting-only #sideTitle,
+    body.meeting-only #pageSub{display:none !important;}
+
+    /* في guest استخدم stage بدل grid */
+    body.meeting-only .video-grid{display:none !important;}
+    body.meeting-only .statusbar{display:none !important;}
+    body.meeting-only .meeting-stage{
+      display:block;
+      position:relative;
       flex:1;
       min-height:0;
+      background:#000;
       overflow:hidden;
     }
 
-    body.meeting-only .statusbar{
-      flex:0 0 auto;
+    .remote-stage{position:absolute; inset:0;}
+
+    body.meeting-only #remoteVideosGrid{
+      position:absolute; inset:0;
+      display:block;
     }
 
+    body.meeting-only #remoteVideosGrid .remote-video-wrapper{
+      position:absolute !important;
+      inset:0 !important;
+    }
+
+    body.meeting-only #remoteVideosGrid video{
+      width:100% !important;
+      height:100% !important;
+      border-radius:0 !important;
+      object-fit:cover;
+      background:#000;
+      min-height:0 !important;
+    }
+
+    body.meeting-only #remoteVideosGrid:empty::before{
+      content:"بانتظار الطرف الآخر...";
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      color:rgba(255,255,255,.75);
+      font-size:14px;
+    }
+
+    /* اخفي label في guest */
+    body.meeting-only .remote-peer-label{display:none !important;}
+
+    .stage-topbar{
+      position:absolute;
+      top:10px; left:10px; right:10px;
+      display:flex; gap:10px;
+      align-items:center; justify-content:center;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(183,211,107,.18);
+      backdrop-filter: blur(10px);
+      color:#fff;
+      font-size:12px;
+      z-index:5;
+    }
+    .stage-topbar .sep{opacity:.6}
+
+    .local-pip{
+      position:absolute;
+      bottom:92px; /* فوق الشات */
+      right:12px;
+      width:min(34vw, 170px);
+      aspect-ratio: 3/4;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid rgba(183,211,107,.22);
+      background:#000;
+      box-shadow:0 10px 30px rgba(0,0,0,.55);
+      z-index:6;
+    }
+    .local-pip video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      background:#000;
+      min-height:0 !important;
+      border-radius:0 !important;
+    }
+    .pip-fs{
+      position:absolute;
+      top:8px; left:8px;
+      border:none;
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:12px;
+      cursor:pointer;
+      background:rgba(0,0,0,.55);
+      color:#fff;
+    }
+
+    /* Chat Dock bottom */
     body.meeting-only .chat{
-      flex:0 0 auto;
-      min-height:0;
-      overflow:hidden;
+      margin:0;
+      border-radius:0;
+      border:0;
+      border-top:1px solid rgba(183,211,107,.18);
+      background:rgba(12, 20, 12, .92);
+      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
     }
-
+    body.meeting-only .chat-head{display:none;}
     body.meeting-only .chat-messages{
       max-height:none;
-      height:clamp(160px, 28vh, 260px);
+      height:28vh;
       overflow:auto;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling:touch;
+      padding:2px 0;
     }
-
-    body.meeting-only .chat-form{
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    body.meeting-only .chat-input{
-      font-size:16px; /* prevent iOS zoom on focus */
-    }
-
-    /* خفّف ارتفاع الفيديو في guest عشان مايدفعش الصفحة */
-    body.meeting-only video{min-height:140px}
+    body.meeting-only .chat-input{font-size:16px;} /* يمنع iOS zoom */
   </style>
 </head>
 
@@ -290,7 +373,6 @@
   <header class="topbar">
     <div class="brand">
       <span class="dot"></span>
-      <span class="title"></span>
       <h1>SUS.com</h1>
     </div>
     <div class="actions">
@@ -301,13 +383,14 @@
 
   <main class="layout">
     <section class="card">
-      <h2 id="pageTitle">لقاء السوس 😂 </h2>
+      <h2 id="pageTitle">لقاء السوس 😂</h2>
       <h3 id="sideTitle">الصفحة نورت بوجودك يا حلومه 😅</h3>
       <p id="pageSub"></p>
 
+      <!-- Normal desktop/tablet layout -->
       <div class="video-grid">
         <div class="video-box">
-          <div class="video-label" id="lblLocal">الحلو😒</div>
+          <div class="video-label" id="lblLocal">الحلو 😒</div>
           <div style="position:relative">
             <video id="localVideo" class="mirrored" autoplay muted playsinline></video>
             <button class="fullscreen-btn" type="button" id="btnFsLocal">⛶</button>
@@ -315,19 +398,39 @@
         </div>
 
         <div class="video-box">
-          <div class="video-label" id="lblRemote">الاحلى😅</div>
+          <div class="video-label" id="lblRemote">الاحلى 😅</div>
           <div id="remoteVideosGrid" class="remote-grid"></div>
         </div>
       </div>
 
+      <!-- Guest/mobile stage layout -->
+      <div class="meeting-stage" id="meetingStage">
+        <div class="remote-stage">
+          <div id="remoteVideosGrid" class="remote-grid"></div>
+          <div class="stage-topbar">
+            <span id="callStatus" class="ok">جاهز</span>
+            <span class="sep">•</span>
+            <span id="callTimer" class="mono">00:00</span>
+            <span class="sep">•</span>
+            <span id="participantsCount" class="mono">1</span>
+          </div>
+        </div>
+
+        <div class="local-pip">
+          <video id="localVideo" class="mirrored" autoplay muted playsinline></video>
+          <button class="pip-fs" type="button" id="btnFsLocal">⛶</button>
+        </div>
+      </div>
+
+      <!-- Desktop statusbar (hidden in guest) -->
       <div class="statusbar">
-        <span id="stLabel">حالة الاتصال:</span>
+        <span>حالة الاتصال:</span>
         <span id="callStatus" class="ok">جاهز</span>
         <span> | </span>
-        <span id="durLabel">المدة:</span>
+        <span>المدة:</span>
         <span id="callTimer" class="mono">00:00</span>
         <span> | </span>
-        <span id="cntLabel">المشاركون:</span>
+        <span>المشاركون:</span>
         <span id="participantsCount" class="mono">1</span>
       </div>
 
@@ -351,7 +454,7 @@
     </section>
 
     <aside class="sidebar" id="sidebar">
-      <h3 id="sideTitle">الصفحة نورت بوجودك يا حلومه 😅</h3>
+      <h3>إدارة الاتصال</h3>
       <p id="sideDesc"></p>
 
       <div class="section">
@@ -360,7 +463,7 @@
       </div>
 
       <div class="section">
-        <div class="label" id="remoteLabel">ID Haloma </div>
+        <div class="label" id="remoteLabel">ID Haloma</div>
         <input id="remoteIdInput" class="input" type="text" placeholder="7aloma" />
         <div class="row" style="margin-top:10px">
           <button class="btn primary" type="button" id="btnStartCall">بدء / إضافة</button>
@@ -390,7 +493,7 @@
     </aside>
   </main>
 
-  <div class="footer">SUS WEBSITE — Private MY Haloma </div>
+  <div class="footer">SUS WEBSITE — Private</div>
 
   <script>
     // =============================
@@ -403,7 +506,7 @@
     })();
 
     // =============================
-    // Fix mobile viewport height (address bar / keyboard jump)
+    // Fix mobile viewport height (address bar / keyboard)
     // =============================
     (function setVh(){
       function apply(){
@@ -416,7 +519,7 @@
     })();
 
     // =============================
-    // Sidebar (IMPORTANT: defined EARLY)
+    // Sidebar (defined early)
     // =============================
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -464,7 +567,6 @@
       document.documentElement.dir  = (l==="en") ? "ltr" : "rtl";
       document.getElementById("langLabel").textContent = (l==="en") ? "EN" : "AR";
 
-      // Update toggle text based on state
       toggleSidebarText.textContent = sidebarOpen
         ? ((l==="en") ? "Close" : "إغلاق")
         : ((l==="en") ? "Controls" : "إدارة الاتصال");
@@ -481,13 +583,16 @@
     setLang(getLang());
 
     // =============================
-    // Fullscreen
+    // Fullscreen (bind once)
     // =============================
-    const localVideo = document.getElementById("localVideo");
-    document.getElementById("btnFsLocal").addEventListener("click", ()=>{
-      if (!document.fullscreenElement) localVideo.requestFullscreen?.().catch(()=>{});
-      else document.exitFullscreen?.().catch(()=>{});
-    });
+    (function bindFullscreen(){
+      const btn = document.getElementById("btnFsLocal");
+      btn.addEventListener("click", ()=>{
+        const v = document.getElementById("localVideo");
+        if (!document.fullscreenElement) v.requestFullscreen?.().catch(()=>{});
+        else document.exitFullscreen?.().catch(()=>{});
+      });
+    })();
 
     // =============================
     // Peer + Media
@@ -579,10 +684,11 @@
     }
 
     async function getMediaStream(){
+      const localVideoEl = document.getElementById("localVideo");
       if (cameraStream){
         localStream = cameraStream;
-        localVideo.srcObject = localStream;
-        localVideo.classList.add("mirrored");
+        localVideoEl.srcObject = localStream;
+        localVideoEl.classList.add("mirrored");
         return localStream;
       }
       const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
@@ -597,15 +703,16 @@
       updateCameraButtonUI();
       updateMicButtonUI();
 
-      localVideo.srcObject = stream;
-      localVideo.classList.add("mirrored");
+      localVideoEl.srcObject = stream;
+      localVideoEl.classList.add("mirrored");
       return stream;
     }
 
     function switchVideoTrack(newStream){
+      const localVideoEl = document.getElementById("localVideo");
       if (!newStream) return;
       localStream = newStream;
-      localVideo.srcObject = newStream;
+      localVideoEl.srcObject = newStream;
 
       const newTrack = newStream.getVideoTracks()[0];
       if (!newTrack) return;
@@ -623,7 +730,7 @@
           isScreenSharing = true;
           btnShareScreen.classList.add("off");
           btnShareScreen.textContent = "🛑";
-          localVideo.classList.remove("mirrored");
+          document.getElementById("localVideo").classList.remove("mirrored");
 
           const track = screenStream.getVideoTracks()[0];
           track.addEventListener("ended", stopScreenShare);
@@ -642,12 +749,18 @@
       }
       if (cameraStream){
         switchVideoTrack(cameraStream);
-        localVideo.classList.add("mirrored");
+        document.getElementById("localVideo").classList.add("mirrored");
       }
     }
 
+    // ✅ مهم: في guest خليه remote واحد fullscreen
     function addRemoteVideo(peerId, remoteStream){
       remoteStreams[peerId] = remoteStream;
+
+      // لو أنت في guest: امسح أي فيديوهات قديمة وخلي واحد
+      if (document.body.classList.contains("meeting-only")){
+        remoteVideosGrid.innerHTML = "";
+      }
 
       let wrapper = document.querySelector(`.remote-video-wrapper[data-peer-id="${peerId}"]`);
       if (!wrapper){
@@ -729,7 +842,6 @@
         myIdBox.textContent = id;
         setStatus("جاهز", false);
 
-        // Invite link
         const base = window.location.href.split("?")[0];
         const u = new URL(base, window.location.href);
         u.searchParams.set("host", id);
@@ -796,11 +908,11 @@
       Object.values(activeCalls).forEach(c=>{ try{ c.close(); }catch{} });
       for (const k in activeCalls) delete activeCalls[k];
 
-      remoteVideosGrid.querySelectorAll(".remote-video-wrapper").forEach(w=> w.remove());
+      remoteVideosGrid.innerHTML = "";
 
       if (cameraStream){ cameraStream.getTracks().forEach(t=> t.stop()); cameraStream = null; }
       localStream = null;
-      localVideo.srcObject = null;
+      document.getElementById("localVideo").srcObject = null;
 
       stopCallTimer(true);
       updateParticipantsCount();
@@ -814,7 +926,7 @@
       catch { inviteLinkInput.select(); document.execCommand("copy"); alert("تم النسخ"); }
     });
 
-    // Chat (light)
+    // Chat (local UI only)
     const chatMessagesEl = document.getElementById("chatMessages");
     const chatForm = document.getElementById("chatForm");
     const chatInput = document.getElementById("chatInput");
@@ -847,7 +959,10 @@
       const maxSize = 2*1024*1024;
       if (file.size>maxSize){ alert("الملف كبير (2MB)"); chatFileInput.value=""; return; }
       const r = new FileReader();
-      r.onload = ()=>{ pendingFile = { name:file.name, dataUrl:r.result }; chatFileHint.textContent = "جاهز للإرسال"; };
+      r.onload = ()=>{
+        pendingFile = { name:file.name, dataUrl:r.result };
+        chatFileHint.textContent = "جاهز للإرسال";
+      };
       r.readAsDataURL(file);
     });
 
@@ -859,22 +974,18 @@
       chatInput.value=""; pendingFile=null; chatFileHint.textContent=""; chatFileInput.value="";
     });
 
-    // Auto connect for guest
     function autoConnectIfGuest(){
       const url = new URL(window.location.href);
       const hostId = url.searchParams.get("host");
       if (hostId){
         remoteIdInput.value = hostId;
-        setTimeout(()=> addParticipantById(hostId), 1000);
+        setTimeout(()=> addParticipantById(hostId), 900);
       }
     }
 
-    // Init
     initPeer();
     window.addEventListener("load", ()=>{
-      getMediaStream().catch(()=>{
-        setStatus("اسمح بالكاميرا/المايك من المتصفح", true);
-      });
+      getMediaStream().catch(()=> setStatus("اسمح بالكاميرا/المايك من المتصفح", true));
       updateParticipantsCount();
       autoConnectIfGuest();
     });
